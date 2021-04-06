@@ -3,7 +3,8 @@ import { exec } from '@actions/exec'
 import { execSync } from 'child_process'
 import fetchHTTP from './backends/http'
 import fetchSQL from './backends/sql'
-import { getConfig, isHTTPConfig, isSQLConfig } from './config'
+import fetchPyFroid from './backends/pyfroid'
+import { getConfig, isHTTPConfig, isSQLConfig, isPyFroidConfig } from './config'
 import { diff } from './git'
 
 async function run(): Promise<void> {
@@ -27,6 +28,8 @@ async function run(): Promise<void> {
     source = config.http_url
   } else if (isSQLConfig(config)) {
     filename = await fetchSQL(config)
+  } else if (isPyFroidConfig(config)) {
+    filename = await fetchPyFroid(config)
   } else {
     // typescript should preclude us from ever being here
     // because config is HTTPConfig | SQLConfig

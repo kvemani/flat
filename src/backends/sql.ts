@@ -5,6 +5,7 @@ import { createConnection, DatabaseType } from 'typeorm'
 import { SQLConfig } from '../config'
 import * as path from 'path'
 import stringify from 'csv-stringify'
+import { exec } from '@actions/exec'
 
 // TODO: wish there was a dynamic way to import this for runtime usage from the DatabaseType type
 const TYPEORM_PROTOCOLS = [

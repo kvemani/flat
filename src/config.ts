@@ -17,6 +17,13 @@ const HTTPConfigSchema = z
   .merge(CommonConfigSchema)
 export type HTTPConfig = z.infer<typeof HTTPConfigSchema>
 
+const PyFroidConfigSchema = z
+  .object({
+    prepfile_path: z.string(),
+  })
+  .merge(CommonConfigSchema)
+export type PyFroidConfig = z.infer<typeof PyFroidConfigSchema>
+
 const SQLConfigSchema = z
   .object({
     sql_connstring: z.string(),
@@ -26,7 +33,7 @@ const SQLConfigSchema = z
   .merge(CommonConfigSchema)
 export type SQLConfig = z.infer<typeof SQLConfigSchema>
 
-const ConfigSchema = z.union([HTTPConfigSchema, SQLConfigSchema])
+const ConfigSchema = z.union([HTTPConfigSchema, SQLConfigSchema, PyFroidConfigSchema])
 export type Config = z.infer<typeof ConfigSchema>
 
 export function getConfig(): Config {
@@ -38,6 +45,7 @@ export function getConfig(): Config {
     'sql_connstring',
     'sql_queryfile',
     'postprocess',
+    'prepfile_path',
   ]
   keys.forEach(k => {
     const v = core.getInput(k)
@@ -51,15 +59,17 @@ export function getConfig(): Config {
       return HTTPConfigSchema.parse(raw)
     } else if ('sql_connstring' in raw) {
       return SQLConfigSchema.parse(raw)
-    } else {
+    } else if ('prepfile_path' in raw) {
+      return PyFroidConfigSchema.parse(raw)
+    }
+    else {
       throw new Error(
-        'One of `http_url` or `sql_connstring` inputs are required.'
+        'One of `http_url` or `sql_connstring` or `prepfile_path` inputs are required.'
       )
     }
   } catch (error) {
     throw new Error(
-      `Invalid configuration!\nReceived: ${JSON.stringify(raw)}\nFailure:${
-        error.message
+      `Invalid configuration!\nReceived: ${JSON.stringify(raw)}\nFailure:${error.message
       }`
     )
   }
@@ -71,4 +81,8 @@ export function isHTTPConfig(config: Config): config is HTTPConfig {
 
 export function isSQLConfig(config: Config): config is SQLConfig {
   return 'sql_connstring' in config && 'sql_queryfile' in config
+}
+
+export function isPyFroidConfig(config: Config): config is PyFroidConfig {
+  return 'prepfile_path' in config
 }
